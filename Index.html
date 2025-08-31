@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grønli Registrar Database System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            padding: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 15px 20px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            font-weight: 500;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .tab-content {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 15px;
+            border: 2px solid #e0e6ed;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .file-upload {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-upload input[type="file"] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-upload-label {
+            display: block;
+            padding: 15px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .file-upload-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(240, 147, 251, 0.4);
+        }
+
+        .btn {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 15px 35px rgba(240, 147, 251, 0.4);
+        }
+
+        .records-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .records-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .records-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e0e6ed;
+            transition: background-color 0.3s ease;
+        }
+
+        .records-table tr:hover td {
+            background-color: #f8f9ff;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-komplett {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-under-behandling {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-arkivert {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .authority-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+        }
+
+        .authority-card h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .authority-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .detail-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e0e6ed;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #7f8c8d;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            color: #2c3e50;
+            font-size: 16px;
+        }
+
+        .seal-preview {
+            width: 100px;
+            height: 100px;
+            border: 2px solid #e0e6ed;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            color: #6c757d;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border: 2px solid #e0e6ed;
+            border-radius: 10px;
+            font-size: 16px;
+            background: white;
+        }
+
+        .search-bar:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
+            .nav-tab {
+                margin-bottom: 5px;
+            }
+            
+            .records-table {
+                font-size: 14px;
+            }
+            
+            .records-table th,
+            .records-table td {
+                padding: 10px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Grønli Registrar Database System</h1>
+            <p>Trust & Governance Document Management</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('documents')">Documents</button>
+            <button class="nav-tab" onclick="showTab('persons')">Persons</button>
+            <button class="nav-tab" onclick="showTab('authorities')">Authorities</button>
+            <button class="nav-tab" onclick="showTab('offices')">Offices</button>
+            <button class="nav-tab" onclick="showTab('registrations')">Registrations</button>
+            <button class="nav-tab" onclick="showTab('search')">Search</button>
+        </div>
+
+        <!-- Documents Tab -->
+        <div id="documents" class="tab-content active">
+            <h2>Document Registration</h2>
+            <form id="documentForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Document Title</label>
+                        <input type="text" id="docTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Series ID / Registration Number</label>
+                        <input type="text" id="seriesId" placeholder="PC-FN-3849" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Jurisdiction</label>
+                        <select id="jurisdiction" required>
+                            <option value="">Select Jurisdiction</option>
+                            <option value="Grønli Court of Records">Grønli Court of Records</option>
+                            <option value="Sovereign House">Sovereign House</option>
+                            <option value="AKFNS">AKFNS</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Document Status</label>
+                        <select id="docStatus" required>
+                            <option value="Under behandling">Under behandling</option>
+                            <option value="Komplett">Komplett</option>
+                            <option value="Arkivert">Arkivert</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Received By</label>
+                        <select id="receivedBy" required>
+                            <option value="">Select Authority</option>
+                            <option value="Kim Terje Rudschinat Grønli">Kim Terje Rudschinat Grønli (PC-FN-3849)</option>
+                            <option value="Kim-Terje Rudschinat Grønli">Kim-Terje Rudschinat Grønli (NP-2025)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Received Date</label>
+                        <input type="date" id="receivedDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Cover Page</label>
+                        <div class="file-upload">
+                            <input type="file" id="coverPage" accept="image/*,application/pdf">
+                            <label for="coverPage" class="file-upload-label">Upload Cover Page</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Seal Image</label>
+                        <div class="file-upload">
+                            <input type="file" id="sealImage" accept="image/*">
+                            <label for="sealImage" class="file-upload-label">Upload Seal</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Notary Signature</label>
+                        <div class="file-upload">
+                            <input type="file" id="notarySignature" accept="image/*">
+                            <label for="notarySignature" class="file-upload-label">Upload Signature</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Notary Date</label>
+                        <input type="date" id="notaryDate">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea id="docNotes" rows="4" placeholder="Additional notes and comments..."></textarea>
+                </div>
+                <button type="submit" class="btn">Register Document</button>
+            </form>
+
+            <h3 style="margin-top: 40px;">Registered Documents</h3>
+            <table class="records-table">
+                <thead>
+                    <tr>
+                        <th>Series ID</th>
+                        <th>Title</th>
+                        <th>Jurisdiction</th>
+                        <th>Status</th>
+                        <th>Received Date</th>
+                        <th>Received By</th>
+                    </tr>
+                </thead>
+                <tbody id="documentsTableBody">
+                    <!-- Documents will be populated here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Persons Tab -->
+        <div id="persons" class="tab-content">
+            <h2>Person Registration</h2>
+            <form id="personForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="fullName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Alternate Names / Aliases</label>
+                        <input type="text" id="alternateNames" placeholder="Comma separated">
+                    </div>
+                    <div class="form-group">
+                        <label>Registration ID</label>
+                        <input type="text" id="registrationId" placeholder="PC-FN-3849, KTR-2025, NP-2025">
+                    </div>
+                    <div class="form-group">
+                        <label>Role/Capacity</label>
+                        <select id="personRole">
+                            <option value="">Select Role</option>
+                            <option value="Grantor/Settlor">Grantor/Settlor</option>
+                            <option value="Trustee">Trustee</option>
+                            <option value="Authorized Signatory">Authorized Signatory</option>
+                            <option value="Executor">Executor</option>
+                            <option value="Notary Private">Notary Private</option>
+                            <option value="Postmaster">Postmaster</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea id="personNotes" rows="3" placeholder="Additional information..."></textarea>
+                </div>
+                <button type="submit" class="btn">Register Person</button>
+            </form>
+
+            <h3 style="margin-top: 40px;">Registered Persons</h3>
+            <table class="records-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Registration ID</th>
+                        <th>Role</th>
+                        <th>Alternate Names</th>
+                    </tr>
+                </thead>
+                <tbody id="personsTableBody">
+                    <!-- Persons will be populated here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Authorities Tab -->
+        <div id="authorities" class="tab-content">
+            <h2>Key Roles & Identities for Trust & Governance</h2>
+            
+            <div class="authority-card">
+                <h3>Grantor / Settlor</h3>
+                <div class="authority-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Identity</div>
+                        <div class="detail-value">Kim Terje Rudschinat Grønli</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Registration ID</div>
+                        <div class="detail-value">PC-FN-3849, KTR-2025</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Authority</div>
+                        <div class="detail-value">Living sovereign, personal authority with proof-of-life</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="authority-card">
+                <h3>Trustee</h3>
+                <div class="authority-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Identity</div>
+                        <div class="detail-value">Grønli Court of Records</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Registration ID</div>
+                        <div class="detail-value">NP-2025</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Authority</div>
+                        <div class="detail-value">Notary private authority, trusted archival governance</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="authority-card">
+                <h3>Authorized Signatory / Executor</h3>
+                <div class="authority-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Identity</div>
+                        <div class="detail-value">Kim-Terje Rudschinat Grønli</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Registration ID</div>
+                        <div class="detail-value">NP-2025</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Authority</div>
+                        <div class="detail-value">Notary & postmaster roles enable recognized signing authority</div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 40px;">Authority Registration</h3>
+            <form id="authorityForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Person</label>
+   
