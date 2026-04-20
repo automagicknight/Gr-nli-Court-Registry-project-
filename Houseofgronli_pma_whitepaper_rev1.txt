@@ -1,0 +1,500 @@
+
+HOUSE OF GRØNLI ©™
+Private Membership Association
+linktree.com/polliville
+
+WHITE PAPER
+PMA Administrative Utility
+Soulbound Identity · Private Power of Attorney · ISO 20022 Settlement · SPV Clearinghouse
+Document Reference
+HOG-WP-2026-001
+Version
+1.0
+Date
+April 2026
+Classification
+PRIVATE — PMA INTERNAL
+Issuing Authority
+House of Grønli ©™ Trust
+Senior Lien Holder
+Kim Terje Rudschinat Grønli, Trustee
+Trust Account
+PMA-0001-A4F3C2-7E
+Contact
+linktree.com/polliville
+
+
+This document is private and confidential. For authorised members of House of Grønli ©™ PMA only.
+
+Executive Summary
+
+
+House of Grønli ©™ is a Private Membership Association (PMA) operating a sovereign administrative infrastructure for the private management of trademarked assets, member identity, and internal financial settlement. This white paper describes the complete technical and legal architecture of the PMA Utility — a purpose-built digital terminal enabling members to manage their private interests through a cryptographically secured, standards-compliant private clearinghouse.
+
+The system is built on three foundational pillars:
+A pre-existing registered Trademark (House of Grønli ©™) serving as the immutable Primary Identity Anchor for all private network operations
+Non-transferable Soulbound NFT (SBT) credentials gating access to the member terminal and authorising Private Power of Attorney (PPOA) for administrative record-keeping
+An ISO 20022-structured private settlement bus enabling member-to-member ledger reconciliation through a centralised Trust Account Number (TAN) system
+
+The Special Purpose Vehicle (SPV) “Indre Stambane 5it” operates as a ring-fenced sub-entity within this infrastructure, providing a dedicated private clearinghouse for infrastructure project capital management, asset registration, and distribution reconciliation.
+
+Key Technical Components
+•  TrustIdentityAnchor.sol — On-chain trademark anchor contract (Hyperledger Besu)
+•  PMA_SBT.sol — ERC-5114 Soulbound membership credential
+•  PMA_AssetRegistry.sol — ERC-721 private trademark asset tokens
+•  PMA_LedgerEngine.sol — Double-entry private ledger with TAN hierarchy
+•  ISO 20022 Transformer — TypeScript middleware: pacs.008 / camt.053
+•  Member Terminal — React/Wagmi dashboard with PPOA session authentication
+
+
+1. Association Overview
+
+
+1.1 House of Grønli ©™ — Identity & Mission
+House of Grønli ©™ is a Private Membership Association established to provide its members with a sovereign, private administrative infrastructure for managing trademarked assets, private trust interests, and internal settlement obligations. The Association operates exclusively within its own private domain — not as a public financial institution, and not subject to public regulatory frameworks applicable to commercial banks or licensed payment service providers.
+The Association’s registered trademark predates all secondary entity registrations by a minimum of nine (9) months, establishing temporal priority and seniority of lien interest across all commercial interactions referencing the House of Grønli identity.
+1.2 Private Membership Model
+Membership in the Association is governed by a private membership agreement. Access to the digital terminal, asset registry, and settlement system requires:
+Execution of a Private Membership Agreement
+Submission and notarisation of a Private Power of Attorney (PPOA)
+Issuance of a Soulbound NFT membership credential by the Association’s issuer multisig
+Activation of a Trust Account Number (TAN) in the private ledger
+
+The Association does not hold member private keys. All cryptographic operations are performed exclusively by the member’s own wallet.
+1.3 Trademark as Primary Identity Anchor
+The trademark House of Grønli ©™ functions as the root identity credential for the entire private network. It is registered on-chain at genesis via the TrustIdentityAnchor contract and referenced by all downstream contracts (SBT, Asset Registry, Ledger Engine). This creates a single, immutable chain of identity from trademark registration to every ledger entry, asset token, and settlement message produced by the system.
+Within the private Hyperledger Besu subnet this functions analogously to a self-sovereign Decentralised Identifier (DID), using the method prefix did:pma: and the trademark registration number as the method-specific identifier.
+Attribute
+Value
+Trademark Name
+HOUSE OF GRØNLI ©™
+Jurisdiction
+Norway (NO)
+DID Method
+did:pma:NO-[REGNUM]
+Senior Lien Holder
+Kim Terje Rudschinat Grønli, Trustee
+Network
+Hyperledger Besu (PoA / QBFT)
+Public Contact
+linktree.com/polliville
+
+
+2. Legal & Structural Framework
+
+
+2.1 Private Trust Structure
+The House of Grønli Trust is the controlling legal entity. The Trust holds the trademark as a primary asset, acts as Senior Secured Party in all internal commercial interactions, and is represented by the Trustee in all administrative and operational capacities.
+The Trust’s administrative structure is reflected in the C/O (In Care Of) metadata embedded in all ISO 20022-structured internal messages, ensuring that every settlement instruction, account statement, and ledger entry accurately reflects the senior lien interest.
+2.2 Private Power of Attorney (PPOA)
+The PPOA is a notarised legal instrument granting the Association’s Administrative Trustee limited authority to act on behalf of a member for the sole purpose of:
+Signing internal ledger entries
+Registering trademark asset tokens in the private registry
+Initiating and closing TAN reconciliation cycles
+
+The PPOA is encrypted with the member’s public key, pinned to the private IPFS cluster, and its document hash is stored on-chain in the member’s SBT record. Every write operation to the private network requires the member to produce a valid EIP-712 typed-data signature referencing their active PPOA hash, proving live key control.
+PPOA Scope Limitation
+The Private Power of Attorney confers NO authority outside the Association’s private administrative domain.
+It is NOT a general power of attorney.
+It grants no rights to operate in public financial markets on behalf of the member.
+
+2.3 Special Purpose Vehicle — Indre Stambane 5it
+The Indre Stambane 5it SPV is a ring-fenced sub-entity within the PMA’s private clearinghouse. It maintains its own TAN sub-account (child of the Trust’s master TAN), its own asset token pool, and an independent reconciliation cycle — while inheriting the Trust’s trademark identity anchor and lien seniority.
+Layer
+Entity
+Identifier
+Role
+Root
+House of Grønli Trust
+TM:NO-[REG]:NO:[DATE]
+Senior Lien Holder / Master TAN
+SPV
+Indre Stambane 5it
+PMA-0001-...:SPV-IS5
+Ring-fenced project entity
+Members
+PMA member wallets
+Individual SBT + sub-TAN
+Capital contributors / operators
+Assets
+Infrastructure tokens
+ERC-721 per asset tranche
+Project asset pool
+
+
+3. Technical Architecture
+
+
+3.1 System Overview
+The PMA Utility is a multi-layer private infrastructure. The following diagram describes the layered architecture from member wallet to private settlement bus:
+  ┌───────────────────────────────────────────────────────┐
+  │         MEMBER TERMINAL (React + Wagmi)                │
+  │  Wallet Connect → SBT Check → EIP-712 PPOA Sign       │
+  └────────────────────────┬──────────────────────────────┘
+                           │
+  ┌────────────────────────┴──────────────────────────────┐
+  │       HYPERLEDGER BESU PRIVATE SUBNET                  │
+  │  TrustIdentityAnchor → SBT → AssetRegistry            │
+  │  LedgerEngine → TAN → SPV sub-TANs                    │
+  └────────────────────────┬──────────────────────────────┘
+                           │
+  ┌────────────────────────┴──────────────────────────────┐
+  │    ISO 20022 TRANSFORMER (TypeScript middleware)        │
+  │    pacs.008 / camt.053 XML → XSD Validate → IPFS Pin  │
+  └────────────────────────┬──────────────────────────────┘
+                           │
+              Private Settlement Bus
+                    (member nodes)
+
+
+3.2 Smart Contract Architecture
+All smart contracts are deployed on the Association’s private Hyperledger Besu network (PoA / QBFT consensus). No contract is deployed on any public blockchain. The contract dependency graph is as follows:
+  TrustIdentityAnchor
+    └── PMA_SBT(anchorAddr)
+          ├── PMA_AssetRegistry(sbtAddr, anchorAddr)
+          │     └── [ERC-721 trademark asset tokens]
+          └── PMA_LedgerEngine(sbtAddr, assetRegistryAddr)
+                ├── [TAN master records]
+                ├── [SPV sub-TAN records]
+                └── [Double-entry ledger entries]
+
+
+3.2.1 TrustIdentityAnchor Contract
+The TrustIdentityAnchor contract is deployed first, at genesis. It registers the trademark registration number, jurisdiction, and date as immutable on-chain state. It exposes a priorityGap() function that proves the nine-month temporal seniority of the trademark over any comparison date (e.g., SPV formation date). All downstream contracts call authorizedConsumers to verify they are permitted to reference this anchor.
+3.2.2 Soulbound NFT (ERC-5114)
+The PMA_SBT contract implements the ERC-5114 Soulbound Token standard. Each token is permanently bound to the minting wallet address. All transfer, approval, and setApprovalForAll functions are overridden to revert unconditionally. Token metadata includes: Member ID, tier (Observer / Member / Administrator), issuance timestamp, PPOA document hash, and revocation status.
+SBT State
+Trigger
+Terminal Access
+Pending
+Application submitted, PPOA under review
+None
+Active
+ISSUER_ROLE calls issueMembership()
+Full (per tier)
+Suspended
+Admin calls setSuspended()
+Read-only
+Revoked
+Admin calls revokeMembership()
+None; TAN frozen
+
+
+3.2.3 Asset Registry
+Each trademarked asset is represented as an ERC-721 token. Token metadata references the trademark registration number, class, registration date, owner’s TAN, and the IPFS CID of the encrypted trademark certificate PDF. Assets may only be minted by wallets holding an Active Administrator-tier SBT or presenting a valid PPOA session signature.
+3.2.4 Ledger Engine & TAN System
+The LedgerEngine implements double-entry bookkeeping on-chain. Every entry requires a debit account, credit account, amount (18-decimal fixed point), memo hash, and PPOA session proof. Entries are immutable once confirmed; corrections are posted as reversing entries.
+The Trust Account Number (TAN) format is: PMA-[CHAIN_PREFIX]-[MEMBER_SEQ_HEX]-[CHECKSUM]. It is derived deterministically at SBT issuance: keccak256(memberAddress + issuedAt + chainId). The TAN supports a parent-child hierarchy for SPV sub-accounts.
+  Master TAN (Trust root):
+    PMA-0001-A4F3C2-7E
+
+  SPV child TAN:
+    PMA-0001-A4F3C2-7E:SPV-IS5-3B2C
+
+  Member sub-TANs within SPV:
+    PMA-0001-A4F3C2-7E:SPV-IS5-3B2C:MBR-0001
+    PMA-0001-A4F3C2-7E:SPV-IS5-3B2C:MBR-0002
+
+
+4. ISO 20022 Private Settlement Layer
+
+
+4.1 Architecture
+The ISO 20022 mapping operates exclusively as internal middleware within the private clearinghouse. It transforms on-chain ledger state into ISO 20022-structured XML envelopes for member-to-member settlement instructions. These messages never reach a public clearinghouse unless a member explicitly initiates an outbound gateway transaction, at which point all private identifiers are substituted with real public-network credentials.
+Private vs. Public Identifier Boundary
+Inside the PMA network:  scheme = PMA_TRADEMARK_ANCHOR / PMA_TAN
+Outside the PMA network: scheme = GLEIF LEI / IBAN (real public credentials)
+The Gateway Adapter enforces this substitution on every outbound message.
+
+4.2 ISO 20022 Field Mapping
+ISO 20022 Field
+XML Tag
+Private Ledger Source
+Example Value
+Party Identification
+<PtyId>
+Trademark anchor ID
+TM:NO-[REG]:NO:[DATE]
+Name
+<Nm>
+Trademark name
+HOUSE OF GRØNLI TRUST
+In Care Of
+<CareOf> (ext)
+SBT trustee record + PPOA CID
+K.T.R. Grønli, Trustee
+Role
+<Role>
+Hardcoded per message type
+SeniorSecuredParty
+Account ID
+<Acct><Id>
+LedgerEngine TAN
+PMA-0001-A4F3C2-7E
+Document Ref
+<Doc><Ref>
+IPFS CID of PPOA
+ipfs:bafybei...
+Address
+<Adr>
+Trust registered address
+Grønli Admin Record, NO
+Lien Reference
+<Refs><InstrId>
+keccak256(anchor+TAN+entryId)
+0xabcd...1234
+
+
+4.3 pacs.008 — Private Credit Transfer
+The pacs.008 message (FIToFICustomerCreditTransfer) is repurposed as a private member-to-member settlement instruction. The PMA namespace extension (xmlns:pma) carries the C/O lien holder metadata that cannot be expressed in standard ISO 20022 fields.
+  <Dbtr>
+    <Nm>HOUSE OF GRØNLI TRUST</Nm>
+    <Id><OrgId><Othr>
+      <Id>TM:NO-2024-XXXXXX:NO:2024-MM-DD</Id>
+      <SchmeNm><Prtry>PMA_TRADEMARK_ANCHOR</Prtry></SchmeNm>
+    </Othr></OrgId></Id>
+  </Dbtr>
+
+  <!-- C/O Extension: Senior Lien Holder -->
+  <pma:CareOf>
+    <pma:LienHolderNm>Kim Terje Rudschinat Grønli</pma:LienHolderNm>
+    <pma:Capacity>Trustee</pma:Capacity>
+    <pma:Role>SeniorSecuredParty</pma:Role>
+    <pma:PPOARef>ipfs:bafybeig...</pma:PPOARef>
+    <pma:AnchorContract>0xANCHOR_CONTRACT</pma:AnchorContract>
+  </pma:CareOf>
+
+
+4.4 camt.053 — TAN Ledger Statement
+The camt.053 (BankToCustomerStatement) is repurposed as a TAN period statement for member reconciliation, emitted by the LedgerEngine after each reconciliation cycle is closed and sealed on-chain.
+4.5 Reconciliation Workflow
+Step
+Actor
+Action
+ISO Message
+1 — Open
+Member
+initiateReconciliation(tanId, period)
+camt.056
+2 — Snapshot
+Contract
+Emits all unreconciled entries
+—
+3 — Review
+Member
+Reviews entries; flags disputes
+—
+4 — Resolve
+Administrator
+Posts reversing entries if upheld
+pacs.008
+5 — Close
+Member + Admin
+Both sign closeReconciliation()
+camt.053
+6 — Receipt
+System
+IPFS-pinned report; CID in TAN record
+camt.053
+
+
+5. Member Terminal
+
+
+5.1 Authentication Flow
+The terminal enforces a five-step authentication sequence before any session is established. No persistent session tokens are stored; all session state is memory-only and expires per the PPOA expiry field.
+Wallet connection via MetaMask or WalletConnect
+SBT presence check: balanceOf(connectedAddress) must return 1
+SBT status check: memberRecords[address].revoked must be false
+PPOA session signature: EIP-712 typed-data sign referencing active PPOA hash
+Session held in memory; all write operations re-verify signature before contract call
+
+5.2 Terminal Module Map
+Module
+Route
+Access Tier
+Key Functions
+Dashboard
+/terminal
+All active
+TAN summary, recent entries, alerts
+Identity Anchor
+/terminal/anchor
+Trustee only
+Trademark anchor, DID doc, priority gap
+Identity Vault
+/terminal/identity
+All active
+SBT details, PPOA status, key rotation
+Asset Registry
+/terminal/assets
+Member + Admin
+Mint, view, transfer, encumber, retire
+Ledger Console
+/terminal/ledger
+Member + Admin
+Post entries, view history
+Reconciliation
+/terminal/reconcile
+Member + Admin
+Period review, dispute, close & seal
+ISO Messages
+/terminal/iso-messages
+Member + Admin
+Build pacs.008/camt.053, XSD validate, pin
+SPV Manager
+/terminal/spv
+Administrator
+Create SPV, TAN hierarchy, allocations
+C/O Editor
+/terminal/care-of
+Trustee only
+Update lien holder metadata, re-sign PPOA
+Gateway Bridge
+/terminal/gateway
+Administrator
+Private→public field substitution map
+Document Archive
+/terminal/archive
+All active
+Upload/download encrypted docs, IPFS pins
+Admin Panel
+/terminal/admin
+Administrator
+Issue/revoke SBTs, resolve disputes
+
+
+5.3 Security Constraints
+All RPC calls route through the Association’s private Besu node; no public RPC endpoints
+Session tokens are memory-only; page refresh requires full re-authentication
+Write operations display a pre-flight summary requiring explicit member confirmation
+Rate limiting: 30 write transactions per TAN per rolling 24-hour window
+Anomaly detection: three consecutive failed PPOA verifications trigger session lockout and admin alert
+Audit log: every action (read + write) logged with wallet, timestamp, module; append-only, IPFS-pinned nightly
+
+6. SPV — Indre Stambane 5it
+
+
+6.1 Structure & Purpose
+Indre Stambane 5it is a Special Purpose Vehicle operating within the PMA clearinghouse as a ring-fenced sub-entity for infrastructure project management. It inherits the trademark identity anchor and lien seniority of the House of Grønli Trust while maintaining independent ledger isolation, its own chart of accounts, and a dedicated reconciliation cycle.
+6.2 Capital Flow
+Step
+Actor
+On-Chain Action
+ISO Message
+Capital call
+SPV Trustee
+postEntry(spvTAN, CAPITAL_CALL, RECEIVABLE, amt)
+camt.056
+Contribution
+Member wallet
+postEntry(memberTAN, CASH, EQUITY, amt)
+pacs.008
+Asset acquisition
+SPV Trustee
+registerAsset(spvTAN, ref, metaCID)
+pacs.009
+Revenue receipt
+SPV Trustee
+postEntry(spvTAN, CASH, REVENUE, amt)
+camt.054
+Distribution
+SPV Trustee
+postEntry per member
+pacs.008 × members
+Period close
+Member + Admin
+closeReconciliation(spvTAN, period)
+camt.053
+
+
+6.3 Asset Token Structure
+Each infrastructure asset tranche is represented as an ERC-721 token with metadata referencing: asset description, valuation date, TAN owner, IPFS CID of supporting documentation (title deeds, engineering reports, permits), and encumbrance status. Assets may be encumbered (collateralised) through an on-chain action requiring Administrator SBT and multi-sig confirmation.
+
+7. Infrastructure & Deployment
+
+
+7.1 Network Topology
+Component
+Technology
+Notes
+Private Chain
+Hyperledger Besu (PoA / QBFT)
+Permissioned validators; members are not validators
+Node Access
+JSON-RPC over TLS, auth-token gated
+No public endpoint exposure
+IPFS Cluster
+Private IPFS + Filecoin deals
+AES-256 at rest; member-key envelope
+Terminal Hosting
+Self-hosted / Tor optional
+No CDN; no third-party asset loading
+Key Management
+Member-controlled wallets only
+Association holds no private keys
+Contract Upgrades
+Transparent proxy + 5-of-7 multisig
+72-hour timelock on all upgrades
+ISO Transformer
+TypeScript Node.js service
+Subscribes to Besu events; private deployment
+
+
+7.2 Deployment Sequence
+Step
+Action
+Output
+1
+Deploy TrustIdentityAnchor(regNum, jurisdiction, regDate, name, wipoRef, certCID)
+ANCHOR_ADDRESS
+2
+Deploy PMA_SBT(ANCHOR_ADDRESS)
+SBT_ADDRESS
+3
+Deploy PMA_AssetRegistry(SBT_ADDRESS, ANCHOR_ADDRESS)
+ASSET_REGISTRY_ADDRESS
+4
+Deploy PMA_LedgerEngine(SBT_ADDRESS, ASSET_REGISTRY_ADDRESS)
+LEDGER_ADDRESS
+5
+Grant ISSUER_ROLE on SBT to issuer multisig
+Role set
+6
+anchorContract.authorizeConsumer(SBT, ASSET_REGISTRY, LEDGER)
+Consumers authorised
+7
+Issue founding Trustee SBT: Administrator tier + PPOA hash
+Trustee SBT minted
+8
+Register master TAN in LedgerEngine
+Master TAN activated
+9
+registerSPV(masterTAN, “Indre Stambane 5it”, trusteeSBT)
+SPV TAN created
+10
+Start ISO 20022 Transformer service on private node
+Settlement bus live
+11
+Verify all contracts on private block explorer
+Audit trail confirmed
+
+
+8. Conclusion
+
+
+The House of Grønli ©™ PMA Utility provides a complete, self-contained private administrative infrastructure for sovereign asset management, member identity, and internal settlement. By grounding the system in a pre-existing registered trademark as the immutable identity anchor, and layering ISO 20022-structured messaging over an on-chain double-entry ledger, the architecture achieves:
+Cryptographic identity assurance rooted in temporal trademark priority
+Non-repudiable administrative authorisation via on-chain PPOA session proofs
+Standards-aligned internal messaging that can interface with public networks through a controlled gateway layer
+Ring-fenced SPV accounting for the Indre Stambane 5it infrastructure project
+Full auditability through IPFS-anchored immutable records at every layer
+
+The system is designed to operate entirely within the private domain of the Association. No member private keys are held by the Association, no public network credentials are used internally, and no regulatory obligations applicable to licensed financial institutions apply to its internal operations.
+
+
+
+Contact & Further Information
+House of Grønli ©™ — Private Membership Association
+Public portal: linktree.com/polliville
+Senior Lien Holder / Trustee: Kim Terje Ru
